@@ -10,14 +10,10 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
     
-    # Configure logging with absolute paths
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    logs_dir = os.path.join(base_dir, 'logs')
-    if not os.path.exists(logs_dir):
-        os.makedirs(logs_dir, mode=0o775)  # Create with proper permissions
-    
-    log_file = os.path.join(logs_dir, 'helpdesk.log')
-    file_handler = RotatingFileHandler(log_file, maxBytes=10240, backupCount=10)
+    # Configure logging
+    if not os.path.exists('logs'):
+        os.mkdir('logs')
+    file_handler = RotatingFileHandler('logs/helpdesk.log', maxBytes=10240, backupCount=10)
     file_handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
     ))
