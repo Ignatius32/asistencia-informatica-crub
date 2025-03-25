@@ -8,12 +8,19 @@ db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
+    
+    # Load the configuration
     app.config.from_object('config.Config')
     
-    # Configure logging
-    if not os.path.exists('logs'):
-        os.mkdir('logs')
-    file_handler = RotatingFileHandler('logs/helpdesk.log', maxBytes=10240, backupCount=10)
+    # Ensure instance folder exists
+    os.makedirs(app.instance_path, exist_ok=True)
+    
+    # Configure logging with absolute path
+    log_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
+    os.makedirs(log_path, exist_ok=True)
+    
+    log_file = os.path.join(log_path, 'helpdesk.log')
+    file_handler = RotatingFileHandler(log_file, maxBytes=10240, backupCount=10)
     file_handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
     ))
