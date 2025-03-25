@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel de Técnico{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Panel de Técnico</h1>
+    <p>¡Bienvenido, {{ session.get('user_name') }}! Su área técnica es: {{ session.get('technical_profile') }}</p>
+    
+    <section>
+        <h2>Sus Tickets</h2>
+        <div class="stats-container">
+            <div class="stat-box">
+                <span class="stat-label">Tickets Abiertos</span>
+                <span class="stat-value">{{ stats.open_tickets }}</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">En Progreso</span>
+                <span class="stat-value">{{ stats.in_progress_tickets }}</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Cerrados Hoy</span>
+                <span class="stat-value">{{ stats.closed_today }}</span>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Sus Tickets Abiertos</h2>
+        {% if open_tickets %}
+        <div class="ticket-filters">
+            <div class="search-box">
+                <input type="text" class="form-control ticket-search" data-table="open-tickets" placeholder="Buscar tickets...">
+            </div>
+            <div class="filter-group">
+                <select class="form-control priority-filter" data-table="open-tickets">
+                    <option value="">Todas las Prioridades</option>
+                    <option value="baja">Baja</option>
+                    <option value="media">Media</option>
+                    <option value="alta">Alta</option>
+                </select>
+                <select class="form-control department-filter" data-table="open-tickets">
+                    <option value="">Todos los Departamentos</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept }}">{{ dept }}</option>
+                    {% endfor %}
+                </select>
+                <select class="form-control date-filter" data-table="open-tickets">
+                    <option value="">Todas las Fechas</option>
+                    <option value="today">Hoy</option>
+                    <option value="week">Esta Semana</option>
+                    <option value="month">Este Mes</option>
+                </select>
+            </div>
+        </div>
+        <div class="responsive-table">
+            <table id="open-tickets">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Descripción</th>
+                        <th>Prioridad</th>
+                        <th>Creado Por</th>
+                        <th>Departamento</th>
+                        <th>Área Técnica</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in open_tickets %}
+                    <tr class="ticket-row" 
+                        data-department="{{ ticket.user.departamento if ticket.user else 'No especificado' }}"
+                        data-date="{{ ticket.created_at.strftime('%Y-%m-%d') }}"
+                        data-priority="{{ ticket.priority }}">
+                        <td>{{ ticket.id }}</td>
+                        <td><a href="{{ url_for('tickets.view', ticket_id=ticket.id) }}">{{ ticket.description }}</a></td>
+                        <td>
+                            <span class="priority-badge priority-{{ ticket.priority }}">
+                                {{ ticket.priority|title }}
+                            </span>
+                        </td>
+                        <td>{{ ticket.user.nombre + ' ' + ticket.user.apellido if ticket.user else 'Desconocido' }}</td>
+                        <td>{{ ticket.user.departamento if ticket.user else 'No especificado' }}</td>
+                        <td>{{ ticket.profile }}</td>
+                        <td>
+                            <div class="button-group">
+                                <a href="{{ url_for('tickets.view', ticket_id=ticket.id) }}" class="btn btn-sm">Ver Detalles</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No hay tickets abiertos asignados a usted.</p>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>Sus Tickets En Progreso</h2>
+        {% if in_progress_tickets %}
+        <div class="ticket-filters">
+            <div class="search-box">
+                <input type="text" class="form-control ticket-search" data-table="in-progress-tickets" placeholder="Buscar tickets...">
+            </div>
+            <div class="filter-group">
+                <select class="form-control priority-filter" data-table="in-progress-tickets">
+                    <option value="">Todas las Prioridades</option>
+                    <option value="baja">Baja</option>
+                    <option value="media">Media</option>
+                    <option value="alta">Alta</option>
+                </select>
+                <select class="form-control department-filter" data-table="in-progress-tickets">
+                    <option value="">Todos los Departamentos</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept }}">{{ dept }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="responsive-table">
+            <table id="in-progress-tickets">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Descripción</th>
+                        <th>Prioridad</th>
+                        <th>Creado Por</th>
+                        <th>Departamento</th>
+                        <th>Área Técnica</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in in_progress_tickets %}
+                    <tr class="ticket-row" 
+                        data-department="{{ ticket.user.departamento if ticket.user else 'No especificado' }}"
+                        data-priority="{{ ticket.priority }}">
+                        <td>{{ ticket.id }}</td>
+                        <td><a href="{{ url_for('tickets.view', ticket_id=ticket.id) }}">{{ ticket.description }}</a></td>
+                        <td>
+                            <span class="priority-badge priority-{{ ticket.priority }}">
+                                {{ ticket.priority|title }}
+                            </span>
+                        </td>
+                        <td>{{ ticket.user.nombre + ' ' + ticket.user.apellido if ticket.user else 'Desconocido' }}</td>
+                        <td>{{ ticket.user.departamento if ticket.user else 'No especificado' }}</td>
+                        <td>{{ ticket.profile }}</td>
+                        <td>
+                            <div class="button-group">
+                                <a href="{{ url_for('tickets.view', ticket_id=ticket.id) }}" class="btn btn-sm">Ver Detalles</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No hay tickets en progreso.</p>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>Tickets Cerrados Recientemente</h2>
+        {% if closed_tickets %}
+        <div class="ticket-filters">
+            <div class="search-box">
+                <input type="text" class="form-control ticket-search" data-table="closed-tickets" placeholder="Buscar tickets...">
+            </div>
+            <div class="filter-group">
+                <select class="form-control priority-filter" data-table="closed-tickets">
+                    <option value="">Todas las Prioridades</option>
+                    <option value="baja">Baja</option>
+                    <option value="media">Media</option>
+                    <option value="alta">Alta</option>
+                </select>
+                <select class="form-control department-filter" data-table="closed-tickets">
+                    <option value="">Todos los Departamentos</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept }}">{{ dept }}</option>
+                    {% endfor %}
+                </select>
+                <select class="form-control date-filter" data-table="closed-tickets">
+                    <option value="">Todas las Fechas</option>
+                    <option value="today">Hoy</option>
+                    <option value="week">Esta Semana</option>
+                    <option value="month">Este Mes</option>
+                </select>
+            </div>
+        </div>
+        <div class="responsive-table">
+            <table id="closed-tickets">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Descripción</th>
+                        <th>Prioridad</th>
+                        <th>Creado Por</th>
+                        <th>Departamento</th>
+                        <th>Área Técnica</th>
+                        <th>Cerrado En</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in closed_tickets %}
+                    <tr class="ticket-row" 
+                        data-department="{{ ticket.user.departamento if ticket.user else 'No especificado' }}"
+                        data-priority="{{ ticket.priority }}">
+                        <td>{{ ticket.id }}</td>
+                        <td><a href="{{ url_for('tickets.view', ticket_id=ticket.id) }}">{{ ticket.description }}</a></td>
+                        <td>
+                            <span class="priority-badge priority-{{ ticket.priority }}">
+                                {{ ticket.priority|title }}
+                            </span>
+                        </td>
+                        <td>{{ ticket.user.nombre + ' ' + ticket.user.apellido if ticket.user else 'Desconocido' }}</td>
+                        <td>{{ ticket.user.departamento if ticket.user else 'No especificado' }}</td>
+                        <td>{{ ticket.profile }}</td>
+                        <td>{{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <div class="button-group">
+                                <a href="{{ url_for('tickets.view', ticket_id=ticket.id) }}" class="btn btn-sm">Ver Detalles</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No hay tickets cerrados recientemente.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

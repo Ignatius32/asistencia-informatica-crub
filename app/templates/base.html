@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Asistencia Informática CRUB-UNCo{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
+</head>
+<body>
+    <header>
+        <h1>Sistema de Asistencia Informática CRUB-UNCo</h1>
+        <nav>
+            <ul>
+                {% if session.get('user_id') %}
+                    {% if session.get('user_role') == 'technician' %}
+                        <li><a href="{{ url_for('tickets.technician_dashboard') }}">Panel de Control</a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('tickets.list') }}">Mis Tickets</a></li>
+                        <li><a href="{{ url_for('tickets.create') }}">Crear Ticket</a></li>
+                    {% endif %}
+                    {% if session.get('user_role') == 'admin' %}
+                        <li><a href="{{ url_for('admin.dashboard') }}">Panel de Administración</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('auth.logout') }}">Cerrar Sesión ({{ session.get('user_name') }})</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('auth.login') }}">Iniciar Sesión</a></li>
+                    <li><a href="{{ url_for('auth.register') }}">Registrarse</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <p>&copy; {{ current_year|default(2025) }} Sistema de Asistencia Informática CRUB-UNCo</p>
+    </footer>
+
+    <script>
+        // Auto-hide flash messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                var flashMessages = document.querySelectorAll('.flash-message');
+                flashMessages.forEach(function(message) {
+                    message.style.transition = 'opacity 0.5s ease-in-out';
+                    message.style.opacity = '0';
+                    setTimeout(function() {
+                        message.style.display = 'none';
+                    }, 500);
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

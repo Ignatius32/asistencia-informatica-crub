@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalles del Ticket{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Detalles del Ticket</h1>
+    <div class="ticket-info">
+        <h2>Ticket ID: {{ ticket.id }}</h2>
+        <p><strong>Descripción:</strong> {{ ticket.description }}</p>
+        <p><strong>Estado:</strong> {{ ticket.status }}</p>
+        <p><strong>Creado por:</strong> {{ ticket.user.nombre + ' ' + ticket.user.apellido if ticket.user else 'Desconocido' }}</p>
+        <p><strong>Departamento/Área:</strong> {{ ticket.user.departamento if ticket.user else 'No especificado' }}</p>
+        <p><strong>Técnico Asignado:</strong> {{ ticket.technician.name if ticket.technician else 'No Asignado' }}</p>
+        <p><strong>Área Técnica:</strong> {{ ticket.profile }}</p>
+        {% if ticket.solution %}
+        <p><strong>Solución:</strong> {{ ticket.solution }}</p>
+        {% endif %}
+    </div>
+
+    {% if session.get('user_role') == 'admin' or (ticket.technician and session.get('user_id') == ticket.technician.id) %}
+    <div class="update-form">
+        <h3>Actualizar Estado del Ticket</h3>
+        {% if ticket.status == 'Closed' and session.get('user_role') == 'technician' %}
+            <p class="warning">Los tickets cerrados no pueden ser modificados por técnicos.</p>
+        {% else %}
+        <form action="{{ url_for('tickets.update_status', ticket_id=ticket.id) }}" method="POST">
+            <div class="form-group">
+                <label for="status">Nuevo Estado:</label>
+                <select id="status" name="status" required>
+                    <option value="Abierto" {% if ticket.status == 'Abierto' %}selected{% endif %}>Abierto</option>
+                    <option value="En Proceso" {% if ticket.status == 'En Proceso' %}selected{% endif %}>En Proceso</option>
+                    <option value="Cerrado" {% if ticket.status == 'Cerrado' %}selected{% endif %}>Cerrado</option>
+                </select>
+            </div>
+            <div class="form-group" id="solution-group" style="display: none;">
+                <label for="solution">Descripción de la Solución:</label>
+                <textarea id="solution" name="solution" rows="4" required></textarea>
+            </div>
+            <div class="button-group">
+                <button type="submit" class="btn">Actualizar Estado</button>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if session.get('user_role') == 'admin' %}
+    <div class="update-form">
+        <h3>Actualizar Prioridad del Ticket</h3>
+        <form action="{{ url_for('tickets.update_priority', ticket_id=ticket.id) }}" method="POST">
+            <div class="form-group">
+                <label for="priority">Prioridad:</label>
+                <select id="priority" name="priority" required>
+                    <option value="baja" {% if ticket.priority == 'baja' %}selected{% endif %}>Baja</option>
+                    <option value="media" {% if ticket.priority == 'media' %}selected{% endif %}>Media</option>
+                    <option value="alta" {% if ticket.priority == 'alta' %}selected{% endif %}>Alta</option>
+                    <option value="maxima" {% if ticket.priority == 'maxima' %}selected{% endif %}>PRIORIDAD MÁXIMA</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button type="submit" class="btn">Actualizar Prioridad</button>
+            </div>
+        </form>
+    </div>
+    <div class="admin-actions">
+        <form action="{{ url_for('tickets.delete_ticket', ticket_id=ticket.id) }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('¿Está seguro que desea eliminar este ticket?')">Eliminar Ticket</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="button-group mt-20">
+        {% if session.get('user_role') == 'technician' %}
+            <a href="{{ url_for('tickets.technician_dashboard') }}" class="btn">Volver al Panel</a>
+        {% else %}
+            <a href="{{ url_for('tickets.list') }}" class="btn">Volver a Tickets</a>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.getElementById('status').addEventListener('change', function() {
+    const solutionGroup = document.getElementById('solution-group');
+    if (this.value === 'Cerrado') {
+        solutionGroup.style.display = 'block';
+        document.getElementById('solution').required = true;
+    } else {
+        solutionGroup.style.display = 'none';
+        document.getElementById('solution').required = false;
+    }
+});
+</script>
+{% endblock %}

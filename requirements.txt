@@ -1,0 +1,10 @@
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-WTF
+Flask-Login
+Werkzeug
+Jinja2
+requests
+python-dotenv
+bcrypt

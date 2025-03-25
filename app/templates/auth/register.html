@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="registration-intro" style="margin-bottom: 2rem; text-align: center;">
+        <h2>Bienvenido al Sistema de Asistencia Informática</h2>
+        <p class="registration-notice" style="color: #666; margin: 1rem 0;">
+            Solo necesita registrarse una vez para acceder a nuestro sistema de asistencia.
+            Con su cuenta podrá crear y dar seguimiento a sus solicitudes de soporte técnico.
+        </p>
+    </div>
+    <div class="registration-form">
+        <h3>Registro de Usuario</h3>
+        <form action="{{ url_for('auth.register') }}" method="POST">
+            <div class="form-group">
+                <label for="dni">DNI:</label>
+                <input type="text" id="dni" name="dni" required placeholder="Ingrese su DNI">
+                <small class="form-text text-muted">Este será su identificador para iniciar sesión</small>
+            </div>
+            <div class="form-group">
+                <label for="apellido">Apellido:</label>
+                <input type="text" id="apellido" name="apellido" required placeholder="Ingrese su apellido">
+            </div>
+            <div class="form-group">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" required placeholder="Ingrese su nombre">
+            </div>
+            <div class="form-group">
+                <label for="departamento">Departamento/Área donde desempeña funciones:</label>
+                <input type="text" id="departamento" name="departamento" required placeholder="Ej: Recursos Humanos, Contabilidad">
+            </div>
+            <div class="form-group">
+                <label for="email">Correo Electrónico:</label>
+                <input type="email" id="email" name="email" required placeholder="nombre@empresa.com">
+                <small class="form-text text-muted">Recibirá notificaciones sobre sus solicitudes en este correo</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Completar Registro</button>
+        </form>
+        <div class="login-link" style="margin-top: 1rem; text-align: center;">
+            <p>¿Ya se registró anteriormente? <a href="{{ url_for('auth.login') }}">Inicie sesión aquí</a>.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

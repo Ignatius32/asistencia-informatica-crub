@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Tickets{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>Mis Tickets</h1>
+        <a href="{{ url_for('tickets.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Crear Nuevo Ticket
+        </a>
+    </div>
+
+    <div class="tickets-filter">
+        <div class="search-box">
+            <input type="text" id="ticketSearch" placeholder="Buscar tickets..." class="form-control">
+        </div>
+        <div class="filter-options">
+            <select id="statusFilter" class="form-control">
+                <option value="">Todos los estados</option>
+                <option value="Abierto">Abierto</option>
+                <option value="En Proceso">En Proceso</option>
+                <option value="Cerrado">Cerrado</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="tickets-container">
+        {% if tickets %}
+            <div class="responsive-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                            <th>Prioridad</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in tickets %}
+                        <tr class="ticket-row">
+                            <td>{{ ticket.id }}</td>
+                            <td class="ticket-description">
+                                <a href="{{ url_for('tickets.view', ticket_id=ticket.id) }}" class="ticket-link">
+                                    {{ ticket.description[:100] + '...' if ticket.description|length > 100 else ticket.description }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ ticket.status|lower|replace(' ', '-') }}">
+                                    {{ ticket.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="priority-badge priority-{{ ticket.priority }}">
+                                    {{ ticket.priority|title }}
+                                </span>
+                            </td>
+                            <td>{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{{ url_for('tickets.view', ticket_id=ticket.id) }}" 
+                                       class="btn btn-sm btn-info" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-ticket-alt empty-icon"></i>
+                <h3>No hay tickets</h3>
+                <p>No has creado ningún ticket todavía.</p>
+                <a href="{{ url_for('tickets.create') }}" class="btn btn-primary">Crear mi primer ticket</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

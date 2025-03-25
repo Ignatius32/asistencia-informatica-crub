@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestionar Categorías{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Gestionar Categorías de Tickets</h1>
+    
+    <!-- Category Form -->
+    <div class="technician-form">
+        <h2>{% if category %}Editar{% else %}Agregar Nueva{% endif %} Categoría</h2>
+        <form action="{{ url_for('admin.manage_categories') }}" method="POST">
+            {% if category %}
+            <input type="hidden" name="category_id" value="{{ category.id }}">
+            {% endif %}
+            <div class="form-group">
+                <label for="name">Nombre:</label>
+                <input type="text" id="name" name="name" value="{{ category.name if category else '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Descripción:</label>
+                <textarea id="description" name="description" rows="3">{{ category.description if category else '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="technical_profile">Área Técnica:</label>
+                <select id="technical_profile" name="technical_profile" required>
+                    <option value="redes-e-infraestructura" {% if category and category.technical_profile == 'redes-e-infraestructura' %}selected{% endif %}>Redes e Infraestructura</option>
+                    <option value="soporte-tecnico" {% if category and category.technical_profile == 'soporte-tecnico' %}selected{% endif %}>Soporte Técnico</option>
+                    <option value="mantenimiento" {% if category and category.technical_profile == 'mantenimiento' %}selected{% endif %}>Mantenimiento</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="active" {% if not category or category.active %}checked{% endif %}>
+                    Activa
+                </label>
+            </div>
+            <button type="submit" class="btn">{% if category %}Actualizar{% else %}Agregar{% endif %} Categoría</button>
+            {% if category %}
+            <a href="{{ url_for('admin.manage_categories') }}" class="btn">Cancelar Edición</a>
+            {% endif %}
+        </form>
+    </div>
+    
+    <!-- Categories List -->
+    <h2>Categorías Actuales</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Área Técnica</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cat in categories %}
+            <tr>
+                <td>{{ cat.id }}</td>
+                <td>{{ cat.name }}</td>
+                <td>{{ cat.description }}</td>
+                <td>{{ cat.technical_profile }}</td>
+                <td>{{ 'Activa' if cat.active else 'Inactiva' }}</td>
+                <td>
+                    <a href="{{ url_for('admin.edit_category', category_id=cat.id) }}" class="btn btn-sm">Editar</a>
+                    <form action="{{ url_for('admin.toggle_category', category_id=cat.id) }}" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-sm {% if cat.active %}btn-danger{% else %}btn-success{% endif %}" 
+                                onclick="return confirm('¿Está seguro que desea {% if cat.active %}desactivar{% else %}activar{% endif %} esta categoría?')">
+                            {% if cat.active %}Desactivar{% else %}Activar{% endif %}
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <a href="{{ url_for('admin.dashboard') }}" class="btn">Volver al Panel</a>
+</div>
+{% endblock %}

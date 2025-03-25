@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel de Administración{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Panel de Administración</h1>
+    
+    <div class="admin-actions">
+        <a href="{{ url_for('admin.manage_technicians') }}" class="btn">
+            <i class="fas fa-users-cog"></i> Gestionar Técnicos
+        </a>
+        <a href="{{ url_for('admin.manage_categories') }}" class="btn">
+            <i class="fas fa-tags"></i> Gestionar Categorías
+        </a>
+        <a href="{{ url_for('tickets.list') }}" class="btn">
+            <i class="fas fa-ticket-alt"></i> Ver Todos los Tickets
+        </a>
+    </div>
+    
+    <section>
+        <h2>Resumen del Sistema</h2>
+        <div class="stats-container">
+            <div class="stat-box">
+                <span class="stat-label">Total de Tickets</span>
+                <span class="stat-value">{{ total_tickets }}</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Tickets Abiertos</span>
+                <span class="stat-value">{{ open_tickets }}</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Tickets Cerrados</span>
+                <span class="stat-value">{{ closed_tickets }}</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Tiempo Promedio de Respuesta</span>
+                <span class="stat-value">{{ avg_response_time }}</span>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Vista General de Tickets</h2>
+        <div class="ticket-filters">
+            <div class="search-box">
+                <input type="text" class="form-control ticket-search" data-table="all-tickets" placeholder="Buscar tickets por descripción, usuario o departamento...">
+            </div>
+            <div class="filter-group">
+                <select class="form-control status-filter" data-table="all-tickets">
+                    <option value="">Todos los Estados</option>
+                    <option value="Abierto">Abierto</option>
+                    <option value="En Proceso">En Proceso</option>
+                    <option value="Cerrado">Cerrado</option>
+                </select>
+                <select class="form-control priority-filter" data-table="all-tickets">
+                    <option value="">Todas las Prioridades</option>
+                    <option value="baja">Baja</option>
+                    <option value="media">Media</option>
+                    <option value="alta">Alta</option>
+                </select>
+                <select class="form-control department-filter" data-table="all-tickets">
+                    <option value="">Todos los Departamentos</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept }}">{{ dept }}</option>
+                    {% endfor %}
+                </select>
+                <select class="form-control technician-filter" data-table="all-tickets">
+                    <option value="">Todos los Técnicos</option>
+                    {% for tech in technicians %}
+                        <option value="{{ tech.id }}">{{ tech.name }}</option>
+                    {% endfor %}
+                </select>
+                <select class="form-control date-filter" data-table="all-tickets">
+                    <option value="">Todas las Fechas</option>
+                    <option value="today">Hoy</option>
+                    <option value="week">Esta Semana</option>
+                    <option value="month">Este Mes</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="responsive-table">
+            <table id="all-tickets">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Descripción</th>
+                        <th>Estado</th>
+                        <th>Prioridad</th>
+                        <th>Usuario</th>
+                        <th>Departamento</th>
+                        <th>Técnico Asignado</th>
+                        <th>Fecha Creación</th>
+                        <th>Última Actualización</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr class="ticket-row" 
+                        data-status="{{ ticket.status }}"
+                        data-priority="{{ ticket.priority }}"
+                        data-department="{{ ticket.user.departamento if ticket.user else 'No especificado' }}"
+                        data-technician="{{ ticket.technician.id if ticket.technician else '' }}"
+                        data-date="{{ ticket.created_at.strftime('%Y-%m-%d') }}">
+                        <td>{{ ticket.id }}</td>
+                        <td>
+                            <a href="{{ url_for('tickets.view', ticket_id=ticket.id) }}" class="ticket-link">
+                                {{ ticket.description[:100] + '...' if ticket.description|length > 100 else ticket.description }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ ticket.status|lower|replace(' ', '-') }}">
+                                {{ ticket.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="priority-badge priority-{{ ticket.priority }}">
+                                {{ ticket.priority|title }}
+                            </span>
+                        </td>
+                        <td>{{ ticket.user.nombre + ' ' + ticket.user.apellido if ticket.user else 'Desconocido' }}</td>
+                        <td>{{ ticket.user.departamento if ticket.user else 'No especificado' }}</td>
+                        <td>{{ ticket.technician.name if ticket.technician else 'Sin asignar' }}</td>
+                        <td>{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('tickets.view', ticket_id=ticket.id) }}" 
+                                   class="btn btn-sm btn-info" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}
