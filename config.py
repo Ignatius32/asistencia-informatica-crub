@@ -1,11 +1,20 @@
 import os
+import platform
 from dotenv import load_dotenv
 
+# Determine if we're on Windows or Linux for path handling
+IS_WINDOWS = platform.system() == 'Windows'
+
 # Determine base directory for the application
-base_dir = '/var/www/asistencia-informatica'
-if not os.path.exists(base_dir):
-    # If not in production, use current directory
+if IS_WINDOWS:
+    # On Windows, use current directory
     base_dir = os.path.abspath(os.path.dirname(__file__))
+else:
+    # On Linux, check for production path first
+    base_dir = '/var/www/asistencia-informatica'
+    if not os.path.exists(base_dir):
+        # Fallback to current directory
+        base_dir = os.path.abspath(os.path.dirname(__file__))
 
 # Load environment variables from .env file
 env_file = os.path.join(base_dir, '.env')
@@ -19,22 +28,36 @@ class Config:
     instance_dir = os.path.join(base_dir, 'instance')
     if not os.path.exists(instance_dir):
         try:
-            os.makedirs(instance_dir, mode=0o775)
+            if IS_WINDOWS:
+                os.makedirs(instance_dir)
+            else:
+                os.makedirs(instance_dir, mode=0o775)
         except:
             pass  # Will be handled later if this fails
     
     # Use absolute path for SQLite database
     db_path = os.path.join(base_dir, 'instance', 'site.db')
     
-    # Check if SQLALCHEMY_DATABASE_URI is already set with an absolute path
+    # Database URI handling
     db_uri = os.environ.get('SQLALCHEMY_DATABASE_URI')
-    if db_uri and db_uri.startswith('sqlite:///') and not db_uri.startswith('sqlite:////'):
-        # Convert relative path to absolute path
-        rel_path = db_uri.replace('sqlite:///', '')
-        db_uri = f'sqlite:////{os.path.join(base_dir, rel_path)}'
+    
+    if db_uri and db_uri.startswith('sqlite:///'):
+        if db_uri.startswith('sqlite:////'):
+            # Already an absolute path
+            pass
+        else:
+            # Convert relative path to absolute path
+            rel_path = db_uri.replace('sqlite:///', '')
+            if IS_WINDOWS:
+                db_uri = f'sqlite:///{os.path.join(base_dir, rel_path)}'
+            else:
+                db_uri = f'sqlite:////{os.path.join(base_dir, rel_path)}'
     else:
         # Use default absolute path
-        db_uri = db_uri or os.environ.get('DATABASE_URL') or f'sqlite:////{db_path}'
+        if IS_WINDOWS:
+            db_uri = db_uri or os.environ.get('DATABASE_URL') or f'sqlite:///{db_path}'
+        else:
+            db_uri = db_uri or os.environ.get('DATABASE_URL') or f'sqlite:////{db_path}'
     
     SQLALCHEMY_DATABASE_URI = db_uri
     SQLALCHEMY_TRACK_MODIFICATIONS = False

@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import os
 import logging
+import platform
 from logging.handlers import RotatingFileHandler
 
 db = SQLAlchemy()
@@ -15,35 +16,59 @@ def create_app():
         app.config['APPLICATION_ROOT'] = os.environ['APPLICATION_ROOT']
         app.config['PREFERRED_URL_SCHEME'] = 'https'
     
+    # Determine if we're on Windows or Linux for path handling
+    IS_WINDOWS = platform.system() == 'Windows'
+    
     # Determine the correct base directory
-    base_dir = '/var/www/asistencia-informatica'
-    if not os.path.exists(base_dir):
-        # If not in production, use current directory's parent
+    if IS_WINDOWS:
+        # On Windows, use current directory's parent
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    else:
+        # On Linux, check for production path first
+        base_dir = '/var/www/asistencia-informatica'
+        if not os.path.exists(base_dir):
+            # Fallback to current directory's parent
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
     # Configure logging with absolute paths
     logs_dir = os.path.join(base_dir, 'logs')
     if not os.path.exists(logs_dir):
-        os.mkdir(logs_dir)
+        try:
+            if IS_WINDOWS:
+                os.makedirs(logs_dir)
+            else:
+                os.makedirs(logs_dir, mode=0o775)
+        except:
+            app.logger.warning("Could not create logs directory, logging to console only")
     
-    file_handler = RotatingFileHandler(
-        os.path.join(logs_dir, 'helpdesk.log'), 
-        maxBytes=10240, 
-        backupCount=10
-    )
-    file_handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-    ))
-    file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(file_handler)
+    try:
+        file_handler = RotatingFileHandler(
+            os.path.join(logs_dir, 'helpdesk.log'), 
+            maxBytes=10240, 
+            backupCount=10
+        )
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+    except:
+        app.logger.warning("Could not configure file logging, logging to console only")
+        
     app.logger.setLevel(logging.INFO)
     app.logger.info('Helpdesk system startup')
     
     # Ensure instance path exists
     instance_path = os.path.join(base_dir, 'instance')
     if not os.path.exists(instance_path):
-        os.makedirs(instance_path)
-        app.logger.info(f"Created instance directory at {instance_path}")
+        try:
+            if IS_WINDOWS:
+                os.makedirs(instance_path)
+            else:
+                os.makedirs(instance_path, mode=0o775)
+            app.logger.info(f"Created instance directory at {instance_path}")
+        except:
+            app.logger.warning(f"Could not create instance directory at {instance_path}")
     
     db.init_app(app)
 
