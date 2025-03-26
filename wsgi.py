@@ -4,8 +4,23 @@ from dotenv import load_dotenv
 
 # Add debug logging
 import logging
-logging.basicConfig(filename='/var/log/apache2/flask_debug.log', level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+# Change log location to application logs directory which should be writable by www-data
+logs_dir = '/var/www/asistencia-informatica/logs'
+if not os.path.exists(logs_dir):
+    try:
+        os.makedirs(logs_dir)
+    except:
+        pass  # We'll handle the error gracefully if we can't create the directory
+
+log_file = os.path.join(logs_dir, 'flask_debug.log')
+try:
+    logging.basicConfig(filename=log_file, level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
+except:
+    # Fallback to stderr if file logging fails
+    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
+    logger.warning("Unable to write to log file, falling back to stderr")
 
 # Log current directory and python path
 logger.debug(f"Current working directory: {os.getcwd()}")
@@ -22,6 +37,9 @@ logger.debug(f"Looking for .env file at: {env_path}")
 # Load environment variables from .env file
 logger.debug("Loading .env file...")
 load_dotenv(env_path)
+
+# Set application root path for subpath deployment
+os.environ['APPLICATION_ROOT'] = '/asistencia'
 
 # Log all environment variables
 logger.debug("Environment variables:")

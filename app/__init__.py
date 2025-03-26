@@ -10,6 +10,11 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
     
+    # Set application root for subpath deployment if configured
+    if 'APPLICATION_ROOT' in os.environ:
+        app.config['APPLICATION_ROOT'] = os.environ['APPLICATION_ROOT']
+        app.config['PREFERRED_URL_SCHEME'] = 'https'
+    
     # Determine the correct base directory
     base_dir = '/var/www/asistencia-informatica'
     if not os.path.exists(base_dir):
@@ -47,6 +52,7 @@ def create_app():
         from .routes.auth import auth_bp
         from .routes.tickets import tickets_bp
         
+        # Register blueprints
         app.register_blueprint(admin_bp)
         app.register_blueprint(auth_bp)
         app.register_blueprint(tickets_bp)
