@@ -57,3 +57,47 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Handle form submissions and button clicks
+document.addEventListener('click', function(e) {
+    const target = e.target;
+    
+    // Handle form submit buttons
+    if (target.type === 'submit' || target.classList.contains('btn')) {
+        const form = target.closest('form');
+        if (form) {
+            // Don't add loading state for JavaScript validation
+            if (form.classList.contains('enhanced-form') && !form.checkValidity()) {
+                return;
+            }
+            
+            // Add loading state
+            target.classList.add('loading');
+            form.classList.add('disabled-interaction');
+            
+            // Store original text
+            target.dataset.originalText = target.innerHTML;
+            target.innerHTML = '';
+        }
+    }
+});
+
+// Handle delete confirmations with loading state
+document.querySelectorAll('[onclick*="confirm"]').forEach(button => {
+    button.onclick = function(e) {
+        if (!confirm(this.getAttribute('onclick').split("'")[1])) {
+            e.preventDefault();
+            return false;
+        }
+        this.classList.add('loading');
+        return true;
+    };
+});
+
+// Handle links that should show loading state (those with .btn class)
+document.addEventListener('click', function(e) {
+    const target = e.target;
+    if (target.classList.contains('btn') && target.href && !target.onclick) {
+        target.classList.add('loading');
+    }
+});

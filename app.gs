@@ -347,12 +347,10 @@ function sendPasswordSetupEmail(userEmail, userName, token) {
       
       <div class="content">
         <p>Hola <<userName>>,</p>
-        <p>Por favor haga clic en el siguiente botón para configurar su contraseña:</p>
+        <p>Por favor use el siguiente enlace para configurar su contraseña:</p>
         
-        <p style="text-align: center;">
-          <a href="https://huayca.crub.uncoma.edu.ar/asistencia-informatica/auth/set-password/<<token>>" class="button">
-            Configurar Contraseña
-          </a>
+        <p style="margin: 20px 0; word-break: break-all;">
+          https://huayca.crub.uncoma.edu.ar/asistencia-informatica/auth/set-password/<<token>>
         </p>
         
         <div class="details">
