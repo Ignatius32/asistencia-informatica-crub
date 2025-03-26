@@ -112,12 +112,17 @@ function sendEmail(to, subject, htmlBody, senderName, placeholders) {
         }
         .button {
           display: inline-block;
-          padding: 10px 20px;
+          padding: 12px 24px;
           background-color: #3498db;
-          color: white;
-          text-decoration: none;
+          color: #ffffff !important;
+          text-decoration: none !important;
           border-radius: 4px;
           margin: 15px 0;
+          font-weight: bold;
+          text-align: center;
+          border: none;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+          transition: background-color 0.3s ease;
         }
         .button:hover {
           background-color: #2980b9;
@@ -307,7 +312,9 @@ function sendTechnicianDailySummary(technicianEmail, technicianName, openTickets
         </div>
         
         <p style="text-align: center;">
-          <a href="http://localhost:5000/technician/dashboard" class="button">Ver Panel de Control</a>
+          <a href="https://huayca.crub.uncoma.edu.ar/asistencia-informatica/technician/dashboard" class="button">
+            Ver Panel de Control
+          </a>
         </p>
         
         <p>¡Gracias por su trabajo!</p>
@@ -343,7 +350,7 @@ function sendPasswordSetupEmail(userEmail, userName, token) {
         <p>Por favor haga clic en el siguiente botón para configurar su contraseña:</p>
         
         <p style="text-align: center;">
-          <a href="http://localhost:5000/auth/set-password/<<token>>" class="button">
+          <a href="https://huayca.crub.uncoma.edu.ar/asistencia-informatica/auth/set-password/<<token>>" class="button">
             Configurar Contraseña
           </a>
         </p>
