@@ -235,6 +235,53 @@ function sendTicketCreationNotification(userEmail, userName, ticketId, ticketDes
   return sendEmail(userEmail, subject, htmlBody, "Asistencia Informática CRUB-UNCo", placeholders);
 }
 
+// Function to send notification to technicians when assigned a new ticket
+function sendTicketAssignmentNotification(technicianEmail, technicianName, ticketId, ticketDescription, userName) {
+  const subject = "Asistencia Informática CRUB-UNCo - Nuevo Ticket #" + ticketId + " Asignado";
+  
+  const htmlBody = `
+    <div class="email-container">
+      <div class="header">
+        <h1>Nuevo Ticket Asignado</h1>
+      </div>
+      
+      <div class="content">
+        <p>Hola <<technicianName>>,</p>
+        <p>Se le ha asignado un nuevo ticket de soporte técnico.</p>
+        
+        <div class="details">
+          <h3 style="margin-top: 0;">Detalles del Ticket:</h3>
+          <ul>
+            <li><strong>Número de Ticket:</strong> #<<ticketId>></li>
+            <li><strong>Solicitante:</strong> <<userName>></li>
+            <li><strong>Descripción:</strong> <<ticketDescription>></li>
+            <li><strong>Estado:</strong> <span class="status-badge status-open">Abierto</span></li>
+          </ul>
+        </div>
+        
+        <p style="text-align: center;">
+          <a href="https://huayca.crub.uncoma.edu.ar/asistencia-informatica/technician/dashboard" class="button">
+            Ver Panel de Control
+          </a>
+        </p>
+      </div>
+      
+      <div class="footer">
+        <p>Saludos cordiales,<br>Sistema de Asistencia Informática CRUB-UNCo</p>
+      </div>
+    </div>
+  `;
+  
+  const placeholders = {
+    technicianName: technicianName,
+    ticketId: ticketId,
+    userName: userName,
+    ticketDescription: ticketDescription
+  };
+  
+  return sendEmail(technicianEmail, subject, htmlBody, "Asistencia Informática CRUB-UNCo", placeholders);
+}
+
 // Function to send notification when ticket status changes
 function sendTicketStatusUpdateNotification(userEmail, userName, ticketId, ticketDescription, status, technicianName, solution) {
   if (status === 'Closed') {

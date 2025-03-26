@@ -177,3 +177,25 @@ class EmailService:
             error_msg = f"Excepción al enviar correo de configuración de contraseña: {str(e)}"
             current_app.logger.error(error_msg)
             return {"success": False, "message": error_msg}
+            
+    def send_ticket_assignment_notification(self, technician_email, technician_name, ticket_id, ticket_description, user_name):
+        """
+        Send an email notification to a technician when a new ticket is assigned to them.
+        
+        Args:
+            technician_email: Email of the technician
+            technician_name: Name of the technician
+            ticket_id: ID of the ticket
+            ticket_description: Description of the ticket
+            user_name: Name of the user who created the ticket
+            
+        Returns:
+            Dictionary with success status and message
+        """
+        return self._make_request("sendTicketAssignmentNotification", [
+            technician_email,
+            technician_name,
+            ticket_id,
+            ticket_description,
+            user_name
+        ])

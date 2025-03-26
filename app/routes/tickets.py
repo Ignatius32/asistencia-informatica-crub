@@ -33,6 +33,7 @@ def create():
         category_id = request.form.get('category_id')
         user_id = session['user_id']
         user = User.query.get(user_id)
+        email_service = EmailService()  # Initialize EmailService here
         
         # Get category and its technical profile
         category = TicketCategory.query.get(category_id)
@@ -66,11 +67,23 @@ def create():
             db.session.commit()
             technician_name = assigned_tech["name"]
             flash(f'Ticket creado y asignado a {technician_name}', 'success')
+
+            # Send email notification to technician
+            technician = Technician.query.get(assigned_tech['id'])
+            if technician and technician.email:
+                email_result = email_service.send_ticket_assignment_notification(
+                    technician.email,
+                    technician.name,
+                    new_ticket.id,
+                    new_ticket.description,
+                    f"{user.nombre} {user.apellido}"
+                )
+                if not email_result["success"]:
+                    current_app.logger.warning(f"Failed to send technician assignment email: {email_result['message']}")
         else:
             flash('Ticket creado pero no hay técnicos disponibles para esta área', 'warning')
         
         if user.email:
-            email_service = EmailService()
             email_result = email_service.send_ticket_creation_notification(
                 user.email,
                 f"{user.nombre} {user.apellido}",
@@ -125,6 +138,7 @@ def view(ticket_id):
 @login_required
 def update_status(ticket_id):
     ticket = Ticket.query.get_or_404(ticket_id)
+    email_service = EmailService()  # Initialize EmailService here
     
     # Prevent changes to closed tickets by technicians
     if ticket.status == 'Cerrado' and session.get('user_role') == 'technician':
@@ -157,7 +171,6 @@ def update_status(ticket_id):
             technician_name = technician.name if technician else "Not assigned"
             
             if user and user.email:
-                email_service = EmailService()
                 email_result = email_service.send_ticket_status_update(
                     user.email,
                     f"{user.nombre} {user.apellido}",
