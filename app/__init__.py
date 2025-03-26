@@ -10,20 +10,22 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
     
-    # Configure logging - Make paths absolute and ensure logs directory exists
-    base_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+    # Determine the correct base directory
+    base_dir = '/var/www/asistencia-informatica'
+    if not os.path.exists(base_dir):
+        # If not in production, use current directory's parent
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    # Configure logging with absolute paths
     logs_dir = os.path.join(base_dir, 'logs')
-    
     if not os.path.exists(logs_dir):
-        try:
-            os.mkdir(logs_dir)
-        except Exception as e:
-            # Fallback to a location that should be writable
-            logs_dir = '/tmp' if os.name != 'nt' else os.environ.get('TEMP', '.')
-            print(f"Could not create logs directory: {e}. Using {logs_dir} instead.")
+        os.mkdir(logs_dir)
     
-    log_file = os.path.join(logs_dir, 'helpdesk.log')
-    file_handler = RotatingFileHandler(log_file, maxBytes=10240, backupCount=10)
+    file_handler = RotatingFileHandler(
+        os.path.join(logs_dir, 'helpdesk.log'), 
+        maxBytes=10240, 
+        backupCount=10
+    )
     file_handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
     ))
@@ -31,6 +33,12 @@ def create_app():
     app.logger.addHandler(file_handler)
     app.logger.setLevel(logging.INFO)
     app.logger.info('Helpdesk system startup')
+    
+    # Ensure instance path exists
+    instance_path = os.path.join(base_dir, 'instance')
+    if not os.path.exists(instance_path):
+        os.makedirs(instance_path)
+        app.logger.info(f"Created instance directory at {instance_path}")
     
     db.init_app(app)
 
