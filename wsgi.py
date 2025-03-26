@@ -2,13 +2,18 @@ import os
 import sys
 from dotenv import load_dotenv
 
+# Explicitly set the base directory and change to it
+base_dir = '/var/www/asistencia-informatica'
+if os.path.exists(base_dir):
+    os.chdir(base_dir)  # Change working directory to application directory
+
 # Add debug logging
 import logging
-# Change log location to application logs directory which should be writable by www-data
-logs_dir = '/var/www/asistencia-informatica/logs'
+# Change log location to application logs directory which should be writable
+logs_dir = os.path.join(base_dir, 'logs')
 if not os.path.exists(logs_dir):
     try:
-        os.makedirs(logs_dir)
+        os.makedirs(logs_dir, mode=0o775)
     except:
         pass  # We'll handle the error gracefully if we can't create the directory
 
@@ -26,11 +31,7 @@ except:
 logger.debug(f"Current working directory: {os.getcwd()}")
 logger.debug(f"Python path: {sys.path}")
 
-# Set absolute path for .env file - adjusted for direct deployment
-base_dir = '/var/www/asistencia-informatica'
-if not os.path.exists(base_dir):
-    # If not in production, use current directory
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+# Set absolute path for .env file
 env_path = os.path.join(base_dir, '.env')
 logger.debug(f"Looking for .env file at: {env_path}")
 
