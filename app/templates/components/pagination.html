@@ -1,0 +1,50 @@
+{% macro render_pagination(pagination, endpoint, section='') %}
+<div class="pagination-container">
+    <nav class="pagination">
+        <ul>            {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for(endpoint, page=pagination.prev_num, section=section) }}">
+                        &laquo; Anterior
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">&laquo; Anterior</span>
+                </li>
+            {% endif %}
+
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == pagination.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for(endpoint, page=page_num, section=section) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}            {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for(endpoint, page=pagination.next_num, section=section) }}">
+                        Siguiente &raquo;
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Siguiente &raquo;</span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    <div class="pagination-info">
+        Mostrando {{ pagination.items|length }} de {{ pagination.total }} resultados
+    </div>
+</div>
+{% endmacro %}

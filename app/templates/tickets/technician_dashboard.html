@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'components/pagination.html' import render_pagination %}
 
 {% block title %}Panel de Técnico{% endblock %}
 
@@ -90,10 +91,14 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-            </table>
-        </div>
+            </table>        </div>
         {% else %}
         <p>No hay tickets abiertos asignados a usted.</p>
+        {% endif %}
+        
+        <!-- Pagination for open tickets -->
+        {% if open_tickets %}
+        {{ render_pagination(open_pagination, 'tickets.technician_dashboard', section='open') }}
         {% endif %}
     </section>
 
@@ -155,10 +160,14 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-            </table>
-        </div>
+            </table>        </div>
         {% else %}
         <p>No hay tickets en progreso.</p>
+        {% endif %}
+        
+        <!-- Pagination for in-progress tickets -->
+        {% if in_progress_tickets %}
+        {{ render_pagination(in_progress_pagination, 'tickets.technician_dashboard', section='in_progress') }}
         {% endif %}
     </section>
 
@@ -228,10 +237,14 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-            </table>
-        </div>
+            </table>        </div>
         {% else %}
         <p>No hay tickets cerrados recientemente.</p>
+        {% endif %}
+        
+        <!-- Pagination for closed tickets -->
+        {% if closed_tickets %}
+        {{ render_pagination(closed_pagination, 'tickets.technician_dashboard', section='closed') }}
         {% endif %}
     </section>
 </div>

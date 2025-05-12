@@ -104,12 +104,20 @@ def create():
 @tickets_bp.route('/tickets')
 @login_required
 def list():
+    # Get page from query parameters, default to 1 if not provided
+    page = request.args.get('page', 1, type=int)
+    per_page = 1  # Number of tickets per page
+    
     # Only show tickets for the current user unless they're an admin
     if session.get('user_role') == 'admin':
-        tickets = Ticket.query.all()
+        pagination = Ticket.query.order_by(Ticket.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False)
     else:
-        tickets = Ticket.query.filter_by(user_id=session['user_id']).all()
-    return render_template('tickets/list.html', tickets=tickets)
+        pagination = Ticket.query.filter_by(user_id=session['user_id']).order_by(
+            Ticket.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    
+    tickets = pagination.items
+    return render_template('tickets/list.html', tickets=tickets, pagination=pagination)
 
 @tickets_bp.route('/tickets/<int:ticket_id>')
 @login_required
@@ -237,26 +245,54 @@ def technician_dashboard():
     technician_id = session.get('user_id')
     today = datetime.utcnow().date()
     
+    # Get pagination parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # Number of tickets per page
+    section = request.args.get('section', 'open')  # Default to open section
+    
+    # Get unique departments for filter dropdowns
+    departments = db.session.query(User.departamento).filter(
+        User.departamento.isnot(None)).distinct().all()
+    departments = [dept[0] for dept in departments if dept[0]]
+    
     # Get tickets assigned to this technician by status
-    open_tickets = Ticket.query.filter_by(
+    open_pagination = Ticket.query.filter_by(
         technician_id=technician_id,
         status='Abierto'
-    ).all()
+    ).order_by(Ticket.created_at.desc()).paginate(
+        page=(page if section == 'open' else 1), 
+        per_page=per_page, 
+        error_out=False
+    )
     
-    in_progress_tickets = Ticket.query.filter_by(
+    in_progress_pagination = Ticket.query.filter_by(
         technician_id=technician_id,
         status='En Proceso'
-    ).all()
+    ).order_by(Ticket.created_at.desc()).paginate(
+        page=(page if section == 'in_progress' else 1), 
+        per_page=per_page, 
+        error_out=False
+    )
     
-    closed_tickets = Ticket.query.filter_by(
+    closed_pagination = Ticket.query.filter_by(
         technician_id=technician_id,
         status='Cerrado'
-    ).order_by(Ticket.updated_at.desc()).limit(10).all()  # Show last 10 closed tickets
+    ).order_by(Ticket.updated_at.desc()).paginate(
+        page=(page if section == 'closed' else 1), 
+        per_page=per_page, 
+        error_out=False
+    )
     
     # Calculate statistics
     stats = {
-        'open_tickets': len(open_tickets),
-        'in_progress_tickets': len(in_progress_tickets),
+        'open_tickets': Ticket.query.filter_by(
+            technician_id=technician_id,
+            status='Abierto'
+        ).count(),
+        'in_progress_tickets': Ticket.query.filter_by(
+            technician_id=technician_id,
+            status='En Proceso'
+        ).count(),
         'closed_today': Ticket.query.filter(
             Ticket.technician_id == technician_id,
             Ticket.status == 'Cerrado',
@@ -265,7 +301,12 @@ def technician_dashboard():
     }
     
     return render_template('tickets/technician_dashboard.html',
-                         open_tickets=open_tickets,
-                         in_progress_tickets=in_progress_tickets,
-                         closed_tickets=closed_tickets,
-                         stats=stats)
+                         open_tickets=open_pagination.items,
+                         in_progress_tickets=in_progress_pagination.items,
+                         closed_tickets=closed_pagination.items,
+                         open_pagination=open_pagination,
+                         in_progress_pagination=in_progress_pagination,
+                         closed_pagination=closed_pagination,
+                         departments=departments,
+                         stats=stats,
+                         current_section=section)

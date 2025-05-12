@@ -21,13 +21,20 @@ def admin_required(f):
 @admin_bp.route('/admin/dashboard')
 @admin_required
 def dashboard():
+    # Get pagination parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = 15  # Number of tickets per page in admin dashboard
+    
     # Calculate statistics for the dashboard
     total_tickets = Ticket.query.count()
     open_tickets = Ticket.query.filter_by(status='Abierto').count()
     closed_tickets = Ticket.query.filter_by(status='Cerrado').count()
     
-    # Get all tickets for the table
-    tickets = Ticket.query.all()
+    # Get all tickets for the table, paginated and ordered by created_at desc
+    pagination = Ticket.query.order_by(Ticket.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False)
+    
+    tickets = pagination.items
     
     # Get unique departments and technicians for filters
     departments = db.session.query(User.departamento).distinct().all()
@@ -39,6 +46,7 @@ def dashboard():
                           open_tickets=open_tickets,
                           closed_tickets=closed_tickets,
                           tickets=tickets,
+                          pagination=pagination,
                           departments=departments,
                           technicians=technicians)
 
