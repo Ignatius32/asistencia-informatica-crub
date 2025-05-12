@@ -106,7 +106,7 @@ def create():
 def list():
     # Get page from query parameters, default to 1 if not provided
     page = request.args.get('page', 1, type=int)
-    per_page = 1  # Number of tickets per page
+    per_page = 15  # Number of tickets per page
     
     # Only show tickets for the current user unless they're an admin
     if session.get('user_role') == 'admin':
@@ -247,7 +247,7 @@ def technician_dashboard():
     
     # Get pagination parameters
     page = request.args.get('page', 1, type=int)
-    per_page = 10  # Number of tickets per page
+    per_page = 15  # Number of tickets per page
     section = request.args.get('section', 'open')  # Default to open section
     
     # Get unique departments for filter dropdowns
