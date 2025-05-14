@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Áreas{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Gestión de Áreas</h1>
+            <p class="lead">Administra áreas, jefes y asignaciones</p>
+        </div>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Volver al Panel
+            </a>
+            <a href="{{ url_for('admin.add_area') }}" class="btn btn-primary mb-3">
+                <i class="fas fa-plus"></i> Crear Nueva Área
+            </a>
+        </div>
+    </div>
+
+    <!-- Areas Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Áreas</h5>
+                </div>
+                <div class="card-body">
+                    {% if areas %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Jefe de Área</th>
+                                        <th>Técnicos</th>
+                                        <th>Categorías</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for area in areas %}
+                                        <tr>
+                                            <td>{{ area.id }}</td>
+                                            <td>{{ area.name }}</td>
+                                            <td>
+                                                {% if area.jefe_area %}
+                                                    {{ area.jefe_area.name }}
+                                                {% else %}
+                                                    <span class="text-muted">Sin jefe asignado</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ area.technicians.count() }}</td>
+                                            <td>{{ area.categories.count() }}</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ url_for('admin.edit_area', area_id=area.id) }}" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-edit"></i> Editar
+                                                    </a>
+                                                    <a href="{{ url_for('admin.manage_area_technicians', area_id=area.id) }}" class="btn btn-sm btn-success">
+                                                        <i class="fas fa-users"></i> Técnicos
+                                                    </a>
+                                                    <a href="{{ url_for('admin.manage_area_categories', area_id=area.id) }}" class="btn btn-sm btn-info">
+                                                        <i class="fas fa-list"></i> Categorías
+                                                    </a>
+                                                    <button type="button" class="btn btn-sm btn-danger" 
+                                                            data-toggle="modal" data-target="#deleteAreaModal{{ area.id }}">
+                                                        <i class="fas fa-trash"></i> Eliminar
+                                                    </button>
+                                                </div>
+
+                                                <!-- Delete Confirmation Modal -->
+                                                <div class="modal fade" id="deleteAreaModal{{ area.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteAreaModalLabel{{ area.id }}" aria-hidden="true">
+                                                    <div class="modal-dialog" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="deleteAreaModalLabel{{ area.id }}">Confirmar Eliminación</h5>
+                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                    <span aria-hidden="true">&times;</span>
+                                                                </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <p>¿Estás seguro que deseas eliminar el área <strong>{{ area.name }}</strong>?</p>
+                                                                <p class="text-danger">Esta acción no se puede deshacer. No podrás eliminar el área si tiene técnicos o categorías asignadas.</p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                                                <form action="{{ url_for('admin.delete_area', area_id=area.id) }}" method="POST" style="display: inline;">
+                                                                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center">No hay áreas definidas. <a href="{{ url_for('admin.add_area') }}">Crear la primera área</a>.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

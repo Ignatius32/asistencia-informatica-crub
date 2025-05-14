@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if area %}Editar Área{% else %}Crear Nueva Área{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>{% if area %}Editar Área: {{ area.name }}{% else %}Crear Nueva Área{% endif %}</h1>
+        </div>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('admin.manage_areas') }}" class="btn btn-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Volver a Áreas
+            </a>
+        </div>
+    </div>
+
+    <!-- Area Form -->
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Detalles del Área</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{% if area %}{{ url_for('admin.edit_area', area_id=area.id) }}{% else %}{{ url_for('admin.add_area') }}{% endif %}" method="POST">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nombre del Área</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ area.name if area else '' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="jefe_area_id" class="form-label">Jefe de Área</label>
+                            <select class="form-control" id="jefe_area_id" name="jefe_area_id">
+                                <option value="none">-- Sin Jefe --</option>
+                                {% for tech in technicians %}
+                                    <option value="{{ tech.id }}" {% if area and area.jefe_area_id == tech.id %}selected{% endif %}>
+                                        {{ tech.name }} ({{ tech.technical_profile }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            {% if area %}Actualizar Área{% else %}Crear Área{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

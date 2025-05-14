@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Categorías en Área{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Gestión de Categorías en Área: {{ area.name }}</h1>
+            <p class="lead">Asigna o remueve categorías de esta área</p>
+        </div>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('admin.manage_areas') }}" class="btn btn-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Volver a Áreas
+            </a>
+        </div>
+    </div>
+
+    <!-- Category Assignment Form -->
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Seleccionar Categorías para {{ area.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('admin.manage_area_categories', area_id=area.id) }}" method="POST">
+                        <div class="mb-3">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Asignar</th>
+                                            <th>ID</th>
+                                            <th>Nombre</th>
+                                            <th>Descripción</th>
+                                            <th>Perfil Técnico</th>
+                                            <th>Estado</th>
+                                            <th>Área Actual</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for category in all_categories %}
+                                            <tr>
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" value="{{ category.id }}" 
+                                                               id="category-{{ category.id }}" name="categories" 
+                                                               {% if category.id in assigned_category_ids %}checked{% endif %}>
+                                                    </div>
+                                                </td>
+                                                <td>{{ category.id }}</td>
+                                                <td>{{ category.name }}</td>
+                                                <td>{{ category.description }}</td>
+                                                <td>{{ category.technical_profile }}</td>
+                                                <td>
+                                                    {% if category.active %}
+                                                        <span class="badge bg-success">Activa</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">Inactiva</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if category.area %}
+                                                        {{ category.area.name }}
+                                                    {% else %}
+                                                        <span class="text-muted">Sin área</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Guardar Asignaciones</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Agregar Nuevo Técnico{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Agregar Nuevo Técnico</h1>
+            <p class="lead">Agregar un técnico a tu área: {{ area.name }}</p>
+        </div>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('jefe_area.area_technicians') }}" class="btn btn-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Volver a Técnicos
+            </a>
+        </div>
+    </div>
+
+    <!-- Technician Form -->
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Información del Técnico</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('jefe_area.add_technician') }}" method="POST">
+                        <div class="mb-3">
+                            <label for="dni" class="form-label">DNI</label>
+                            <input type="text" class="form-control" id="dni" name="dni" required>
+                            <small class="form-text text-muted">Documento de identidad del técnico.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nombre Completo</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>                        <div class="mb-3">
+                            <label for="email" class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <small class="form-text text-muted">Se enviará un correo electrónico de invitación a esta dirección.</small>
+                        </div>
+                        <!-- Note: technical_profile field removed as it's legacy -->
+                        <button type="submit" class="btn btn-primary">Crear Técnico</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

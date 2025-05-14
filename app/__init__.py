@@ -1,3 +1,4 @@
+# filepath: c:\Users\basti\OneDrive\Documentos\asistencia-informatica-crub\app\__init__.py
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import os
@@ -71,18 +72,23 @@ def create_app():
             app.logger.warning(f"Could not create instance directory at {instance_path}")
     
     db.init_app(app)
-
+    
     with app.app_context():
-        from .routes.admin import admin_bp
-        from .routes.auth import auth_bp
-        from .routes.tickets import tickets_bp
-        
         # Register blueprints
-        app.register_blueprint(admin_bp)
+        from app.routes.auth import auth_bp
+        from app.routes.tickets import tickets_bp
+        from app.routes.admin import admin_bp
+        from app.routes.jefe_area import jefe_area_bp  # Make sure this is imported
+        
         app.register_blueprint(auth_bp)
-        app.register_blueprint(tickets_bp)
+        # Only register this once
+        if 'tickets' not in app.blueprints:
+            app.register_blueprint(tickets_bp)
+        app.register_blueprint(admin_bp)
+        # Register the new blueprint
+        app.register_blueprint(jefe_area_bp)
 
-        from .models import User, Technician, Ticket
+        from .models import User, Technician, Ticket, Area, TicketCategory, TechnicianCategoryAssignment
         db.create_all()
         
         # Create default user and technicians if they don't exist
@@ -135,16 +141,6 @@ def create_defaults(app):
                 'name': 'Software (problemas con aplicaciones o programas)',
                 'technical_profile': 'soporte-tecnico',
                 'description': 'Problemas con instalación, configuración o uso de software'
-            },
-            {
-                'name': 'Acceso a Internet',
-                'technical_profile': 'redes-e-infraestructura',
-                'description': 'Problemas de conectividad a internet o red local'
-            },
-            {
-                'name': 'Impresora / Escáner',
-                'technical_profile': 'soporte-tecnico',
-                'description': 'Problemas con impresoras o escáneres'
             },
             {
                 'name': 'Falta de tinta o tóner en impresora',
@@ -226,3 +222,12 @@ def create_defaults(app):
                 app.logger.warning(f"Created technician but failed to send setup email: {tech['name']}")
     
     db.session.commit()
+    
+    # Patches no longer needed as fixes have been applied directly to jefe_area.py
+    # try:
+    #     from .routes.jefe_area_patches import update_add_category_validation, update_add_technician
+    #     update_add_category_validation()
+    #     update_add_technician()
+    #     app.logger.info("Applied patches for the jefe_area routes")
+    # except Exception as e:
+    #     app.logger.error(f"Error applying patches: {str(e)}")

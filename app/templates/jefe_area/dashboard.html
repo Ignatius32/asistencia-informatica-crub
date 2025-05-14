@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel de Jefe de Área{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Panel de Jefe de Área - {{ area.name }}</h1>
+            <p class="lead">Administra y da seguimiento a los tickets de tu área</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total de Tickets</h5>
+                    <h2 class="card-text">{{ total_tickets }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Tickets Abiertos</h5>
+                    <h2 class="card-text">{{ open_tickets }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Tickets Cerrados</h5>
+                    <h2 class="card-text">{{ closed_tickets }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    Acciones Rápidas
+                </div>                <div class="card-body">
+                    <a href="{{ url_for('jefe_area.area_technicians') }}" class="btn btn-primary mr-2 mb-2">
+                        <i class="fas fa-users"></i> Ver Técnicos del Área
+                    </a>
+                    <a href="{{ url_for('jefe_area.add_technician') }}" class="btn btn-secondary mr-2 mb-2">
+                        <i class="fas fa-user-plus"></i> Agregar Nuevo Técnico
+                    </a>
+                    <a href="{{ url_for('jefe_area.area_categories') }}" class="btn btn-success mr-2 mb-2">
+                        <i class="fas fa-list"></i> Ver Categorías del Área
+                    </a>
+                    <a href="{{ url_for('jefe_area.add_category') }}" class="btn btn-info mb-2">
+                        <i class="fas fa-plus"></i> Crear Nueva Categoría
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tickets Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Tickets de tu Área</h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if tickets %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Descripción</th>
+                                        <th>Estado</th>
+                                        <th>Prioridad</th>
+                                        <th>Categoría</th>
+                                        <th>Fecha de Creación</th>
+                                        <th>Técnico</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ticket in tickets %}
+                                        <tr>
+                                            <td>{{ ticket.id }}</td>
+                                            <td>{{ ticket.description[:50] }}{% if ticket.description|length > 50 %}...{% endif %}</td>
+                                            <td>
+                                                {% if ticket.status == 'Abierto' %}
+                                                    <span class="badge bg-danger">{{ ticket.status }}</span>
+                                                {% elif ticket.status == 'En Proceso' %}
+                                                    <span class="badge bg-warning">{{ ticket.status }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">{{ ticket.status }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if ticket.priority == 'maxima' %}
+                                                    <span class="badge bg-danger">Máxima</span>
+                                                {% elif ticket.priority == 'alta' %}
+                                                    <span class="badge bg-warning">Alta</span>
+                                                {% elif ticket.priority == 'media' %}
+                                                    <span class="badge bg-info">Media</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Baja</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ ticket.category.name }}</td>
+                                            <td>{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                            <td>{{ ticket.technician.name if ticket.technician else 'Sin asignar' }}</td>
+                                            <td>
+                                                <a href="{{ url_for('tickets.view', ticket_id=ticket.id) }}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-eye"></i> Ver
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% include 'components/pagination.html' %}
+                    {% else %}
+                        <p class="text-center">No hay tickets para mostrar.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

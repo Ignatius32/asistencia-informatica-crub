@@ -9,14 +9,16 @@
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
     <script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
 </head>
-<body>
-    <header>
+<body>    <header>
         <h1>Sistema de Asistencia Informática CRUB-UNCo</h1>
         <nav>
             <ul>
                 {% if session.get('user_id') %}
                     {% if session.get('user_role') == 'technician' %}
                         <li><a href="{{ url_for('tickets.technician_dashboard') }}">Panel de Control</a></li>
+                        {% if session.get('is_jefe_area') %}
+                            <li><a href="{{ url_for('jefe_area.dashboard') }}">Panel de Jefe de Área</a></li>
+                        {% endif %}
                     {% else %}
                         <li><a href="{{ url_for('tickets.list') }}">Mis Tickets</a></li>
                         <li><a href="{{ url_for('tickets.create') }}">Crear Ticket</a></li>

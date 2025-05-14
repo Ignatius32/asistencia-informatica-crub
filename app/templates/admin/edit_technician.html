@@ -22,10 +22,22 @@
         <div class="form-group">
             <label for="profile">Perfil Técnico:</label>
             <select id="profile" name="profile" required>
-                <option value="redes-e-infraestructura" {% if technician.technical_profile == 'redes-e-infraestructura' %}selected{% endif %}>Redes e Infraestructura</option>
-                <option value="soporte-tecnico" {% if technician.technical_profile == 'soporte-tecnico' %}selected{% endif %}>Soporte Técnico</option>
+                <option value="redes-e-infraestructura" {% if technician.technical_profile == 'redes-e-infraestructura' %}selected{% endif %}>Redes e Infraestructura</option>                <option value="soporte-tecnico" {% if technician.technical_profile == 'soporte-tecnico' %}selected{% endif %}>Soporte Técnico</option>
                 <option value="mantenimiento" {% if technician.technical_profile == 'mantenimiento' %}selected{% endif %}>Mantenimiento</option>
             </select>
+        </div>
+        <div class="form-group">
+            <label for="area_id">Área:</label>
+            <select id="area_id" name="area_id">
+                <option value="">-- Sin área --</option>
+                {% for area in areas %}
+                    <option value="{{ area.id }}" {% if technician.area_id == area.id %}selected{% endif %}>{{ area.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="is_jefe_area">Es Jefe de Área:</label>
+            <input type="checkbox" id="is_jefe_area" name="is_jefe_area" value="1" {% if technician.is_jefe_area %}checked{% endif %}>
         </div>
         <button type="submit" class="btn">Actualizar Técnico</button>
     </form>

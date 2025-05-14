@@ -133,8 +133,7 @@ def login():
             
             flash('¡Inicio de sesión de administrador exitoso!', 'success')
             return redirect(url_for('admin.dashboard'))
-        
-        # Check for technician login with DNI
+          # Check for technician login with DNI
         technician = Technician.query.filter_by(dni=dni).first()
         if technician:
             if not technician.password_hash:
@@ -149,6 +148,14 @@ def login():
             session['user_name'] = technician.name
             session['user_role'] = 'technician'
             session['technical_profile'] = technician.technical_profile
+            
+            # Check if technician is a jefe_area and store additional info
+            session['is_jefe_area'] = technician.is_jefe_area
+            if technician.is_jefe_area:
+                session['managed_area_id'] = technician.led_area.id
+            
+            # Store technician's area_id if assigned to an area
+            session['technician_area_id'] = technician.area_id if technician.area_id else None
             
             flash('¡Inicio de sesión exitoso!', 'success')
             return redirect(url_for('tickets.technician_dashboard'))  # Changed this line

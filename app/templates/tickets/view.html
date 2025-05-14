@@ -43,9 +43,7 @@
         </form>
         {% endif %}
     </div>
-    {% endif %}
-
-    {% if session.get('user_role') == 'admin' %}
+    {% endif %}    {% if (session.get('user_role') == 'admin' or (session.get('is_jefe_area') and can_update)) %}
     <div class="update-form">
         <h3>Actualizar Prioridad del Ticket</h3>
         <form action="{{ url_for('tickets.update_priority', ticket_id=ticket.id) }}" method="POST">
@@ -63,15 +61,19 @@
             </div>
         </form>
     </div>
+    {% endif %}
+    
+    {% if session.get('user_role') == 'admin' %}
     <div class="admin-actions">
         <form action="{{ url_for('tickets.delete_ticket', ticket_id=ticket.id) }}" method="POST" style="display: inline;">
             <button type="submit" class="btn btn-danger" onclick="return confirm('¿Está seguro que desea eliminar este ticket?')">Eliminar Ticket</button>
         </form>
     </div>
-    {% endif %}
-
-    <div class="button-group mt-20">
+    {% endif %}    <div class="button-group mt-20">
         {% if session.get('user_role') == 'technician' %}
+            {% if session.get('is_jefe_area') %}
+                <a href="{{ url_for('jefe_area.dashboard') }}" class="btn">Volver al Panel de Jefe</a>
+            {% endif %}
             <a href="{{ url_for('tickets.technician_dashboard') }}" class="btn">Volver al Panel</a>
         {% else %}
             <a href="{{ url_for('tickets.list') }}" class="btn">Volver a Tickets</a>

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Asignar Categorías a Técnico{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Asignar Categorías a Técnico</h1>
+            <p class="lead">Técnico: {{ technician.name }} - DNI: {{ technician.dni }}</p>
+        </div>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('jefe_area.area_technicians') }}" class="btn btn-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Volver a Técnicos
+            </a>
+        </div>
+    </div>
+
+    <!-- Assignment Form -->
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Selecciona las categorías a asignar</h5>
+                </div>
+                <div class="card-body">
+                    {% if categories %}
+                        <form action="{{ url_for('jefe_area.assign_technician_category', tech_id=technician.id) }}" method="POST">
+                            <div class="mb-3">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Asignar</th>
+                                                <th>ID</th>
+                                                <th>Nombre</th>
+                                                <th>Descripción</th>
+                                                <th>Perfil Técnico</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for category in categories %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" value="{{ category.id }}" 
+                                                                id="category-{{ category.id }}" name="categories" 
+                                                                {% if category.id in current_category_ids %}checked{% endif %}>
+                                                        </div>
+                                                    </td>
+                                                    <td>{{ category.id }}</td>
+                                                    <td>{{ category.name }}</td>
+                                                    <td>{{ category.description }}</td>
+                                                    <td>{{ category.technical_profile }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Guardar Asignaciones</button>
+                        </form>
+                    {% else %}
+                        <p class="text-center">No hay categorías disponibles para asignar en esta área.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

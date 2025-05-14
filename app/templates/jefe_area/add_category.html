@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Agregar Nueva Categoría{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Crear Nueva Categoría</h1>
+            <p class="lead">Agregar una categoría de tickets para el área {{ area.name }}</p>
+        </div>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('jefe_area.area_categories') }}" class="btn btn-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Volver a Categorías
+            </a>
+        </div>
+    </div>
+
+    <!-- Category Form -->
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Detalles de la Categoría</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('jefe_area.add_category') }}" method="POST">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nombre de la Categoría</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>                        <div class="mb-3">
+                            <label for="description" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="technical_profile" class="form-label">Perfil Técnico Requerido (Opcional)</label>
+                            <select class="form-control" id="technical_profile" name="technical_profile">
+                                <option value="">Ninguno - Usar asignaciones explícitas</option>
+                                <option value="soporte-tecnico">Soporte Técnico</option>
+                                <option value="redes-e-infraestructura">Redes e Infraestructura</option>
+                                <option value="sistemas">Sistemas</option>
+                                <option value="desarrollo">Desarrollo</option>
+                            </select>
+                            <small class="form-text text-muted">Este campo es legado. Preferiblemente, asigne técnicos explícitamente a las categorías.</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Crear Categoría</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Categorías del Área{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Categorías del Área: {{ area.name }}</h1>
+            <p class="lead">Gestiona las categorías de tickets de tu área</p>
+        </div>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('jefe_area.dashboard') }}" class="btn btn-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Volver al Panel
+            </a>
+            <a href="{{ url_for('jefe_area.add_category') }}" class="btn btn-primary mb-3">
+                <i class="fas fa-plus"></i> Crear Nueva Categoría
+            </a>
+        </div>
+    </div>
+
+    <!-- Categories Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Categorías en {{ area.name }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if categories %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Descripción</th>
+                                        <th>Perfil Técnico</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for category in categories %}
+                                        <tr>
+                                            <td>{{ category.id }}</td>
+                                            <td>{{ category.name }}</td>
+                                            <td>{{ category.description }}</td>
+                                            <td>{{ category.technical_profile }}</td>
+                                            <td>
+                                                {% if category.active %}
+                                                    <span class="badge bg-success">Activa</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Inactiva</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center">No hay categorías asignadas a esta área.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

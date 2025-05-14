@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Técnicos del Área{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Técnicos del Área: {{ area.name }}</h1>
+            <p class="lead">Gestiona los técnicos asignados a tu área</p>
+        </div>
+    </div>    <!-- Quick Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('jefe_area.dashboard') }}" class="btn btn-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Volver al Panel
+            </a>
+            <a href="{{ url_for('jefe_area.add_technician') }}" class="btn btn-primary mb-3">
+                <i class="fas fa-user-plus"></i> Agregar Nuevo Técnico
+            </a>
+        </div>
+    </div>
+
+    <!-- Technicians Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Técnicos en {{ area.name }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if technicians %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>DNI</th>
+                                        <th>Perfil Técnico</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tech in technicians %}
+                                        <tr>
+                                            <td>{{ tech.id }}</td>
+                                            <td>{{ tech.name }}</td>
+                                            <td>{{ tech.email }}</td>
+                                            <td>{{ tech.dni }}</td>
+                                            <td>{{ tech.technical_profile }}</td>
+                                            <td>
+                                                <a href="{{ url_for('jefe_area.assign_technician_category', tech_id=tech.id) }}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-tasks"></i> Asignar Categorías
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center">No hay técnicos asignados a esta área.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

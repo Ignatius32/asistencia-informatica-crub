@@ -150,7 +150,6 @@ class EmailService:
             open_tickets,
             closed_today
         ])
-    
     def send_password_setup_email(self, user_email, user_name, token):
         """
         Send an email with a link to set up the user's password.
@@ -177,7 +176,7 @@ class EmailService:
             error_msg = f"Excepción al enviar correo de configuración de contraseña: {str(e)}"
             current_app.logger.error(error_msg)
             return {"success": False, "message": error_msg}
-            
+    
     def send_ticket_assignment_notification(self, technician_email, technician_name, ticket_id, ticket_description, user_name):
         """
         Send an email notification to a technician when a new ticket is assigned to them.
@@ -198,4 +197,46 @@ class EmailService:
             ticket_id,
             ticket_description,
             user_name
+        ])
+    
+    def send_area_ticket_notification(self, chief_email, chief_name, ticket_id, ticket_description, area_name):
+        """
+        Send an email notification to an area chief when a new ticket is created in their area.
+        
+        Args:
+            chief_email: Email of the area chief
+            chief_name: Name of the area chief
+            ticket_id: ID of the ticket
+            ticket_description: Description of the ticket
+            area_name: Name of the area
+            
+        Returns:
+            Dictionary with success status and message
+        """
+        return self._make_request("sendAreaTicketNotification", [
+            chief_email,
+            chief_name,
+            ticket_id,
+            ticket_description,
+            area_name
+        ])
+        """
+        Send an email notification to an area chief when a new ticket is created in their area.
+        
+        Args:
+            chief_email: Email of the area chief
+            chief_name: Name of the area chief
+            ticket_id: ID of the ticket
+            ticket_description: Description of the ticket
+            area_name: Name of the area
+            
+        Returns:
+            Dictionary with success status and message
+        """
+        return self._make_request("sendAreaTicketNotification", [
+            chief_email,
+            chief_name,
+            ticket_id,
+            ticket_description,
+            area_name
         ])

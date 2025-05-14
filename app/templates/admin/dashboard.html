@@ -6,13 +6,15 @@
 {% block content %}
 <div class="container">
     <h1>Panel de Administración</h1>
-    
-    <div class="admin-actions">
+      <div class="admin-actions">
         <a href="{{ url_for('admin.manage_technicians') }}" class="btn">
             <i class="fas fa-users-cog"></i> Gestionar Técnicos
         </a>
         <a href="{{ url_for('admin.manage_categories') }}" class="btn">
             <i class="fas fa-tags"></i> Gestionar Categorías
+        </a>
+        <a href="{{ url_for('admin.manage_areas') }}" class="btn">
+            <i class="fas fa-sitemap"></i> Gestionar Áreas
         </a>
         <a href="{{ url_for('tickets.list') }}" class="btn">
             <i class="fas fa-ticket-alt"></i> Ver Todos los Tickets

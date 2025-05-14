@@ -1,0 +1,273 @@
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session, current_app
+from functools import wraps
+from app.models.technician import Technician
+from app.models.ticket import Ticket
+from app.models.category import TicketCategory
+from app.models.area import Area
+from app.models.technician_category_assignment import TechnicianCategoryAssignment
+from app.utils.email_service import EmailService
+from app import db
+from datetime import datetime
+
+jefe_area_bp = Blueprint('jefe_area', __name__, url_prefix='/jefe_area')
+
+def jefe_area_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('user_id') or not session.get('is_jefe_area'):
+            flash('Se requiere acceso de Jefe de área.', 'danger')
+            return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@jefe_area_bp.route('/dashboard')
+@jefe_area_required
+def dashboard():
+    # Get pagination parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = 15  # Number of tickets per page in jefe area dashboard
+    
+    # Get managed area ID from session
+    managed_area_id = session.get('managed_area_id')
+    
+    if not managed_area_id:
+        flash('Error: No se ha encontrado el área gestionada.', 'danger')
+        return redirect(url_for('tickets.technician_dashboard'))
+    
+    area = Area.query.get_or_404(managed_area_id)
+    
+    # Get all tickets related to this area:
+    # 1. Tickets assigned to technicians in this area
+    # 2. Tickets with categories that belong to this area
+    
+    # Get technician IDs in this area
+    area_technician_ids = [tech.id for tech in area.technicians]
+    # Get category IDs in this area
+    area_category_ids = [cat.id for cat in area.categories]
+    
+    # Build the query for tickets
+    tickets_query = Ticket.query.filter(
+        # Tickets assigned to technicians in this area
+        (Ticket.technician_id.in_(area_technician_ids) if area_technician_ids else False) |
+        # Tickets with categories in this area
+        (Ticket.category_id.in_(area_category_ids) if area_category_ids else False)
+    ).order_by(Ticket.created_at.desc())
+    
+    # Paginate results
+    tickets_pagination = tickets_query.paginate(page=page, per_page=per_page, error_out=False)
+    tickets = tickets_pagination.items
+    
+    # Get statistics
+    total_tickets = tickets_query.count()
+    open_tickets = tickets_query.filter(Ticket.status != 'Cerrado').count()
+    closed_tickets = tickets_query.filter(Ticket.status == 'Cerrado').count()
+    
+    return render_template('jefe_area/dashboard.html', 
+                          area=area,
+                          tickets=tickets,
+                          pagination=tickets_pagination,
+                          total_tickets=total_tickets,
+                          open_tickets=open_tickets,
+                          closed_tickets=closed_tickets)
+
+@jefe_area_bp.route('/area_technicians')
+@jefe_area_required
+def area_technicians():
+    # Get managed area ID from session
+    managed_area_id = session.get('managed_area_id')
+    
+    if not managed_area_id:
+        flash('Error: No se ha encontrado el área gestionada.', 'danger')
+        return redirect(url_for('tickets.technician_dashboard'))
+    
+    area = Area.query.get_or_404(managed_area_id)
+    technicians = area.technicians
+    
+    return render_template('jefe_area/area_technicians.html', 
+                          area=area,
+                          technicians=technicians)
+
+@jefe_area_bp.route('/area_categories')
+@jefe_area_required
+def area_categories():
+    # Get managed area ID from session
+    managed_area_id = session.get('managed_area_id')
+    
+    if not managed_area_id:
+        flash('Error: No se ha encontrado el área gestionada.', 'danger')
+        return redirect(url_for('tickets.technician_dashboard'))
+    
+    area = Area.query.get_or_404(managed_area_id)
+    categories = area.categories
+    
+    return render_template('jefe_area/area_categories.html', 
+                          area=area,
+                          categories=categories)
+
+@jefe_area_bp.route('/add_category', methods=['GET', 'POST'])
+@jefe_area_required
+def add_category():
+    # Get managed area ID from session
+    managed_area_id = session.get('managed_area_id')
+    
+    if not managed_area_id:
+        flash('Error: No se ha encontrado el área gestionada.', 'danger')
+        return redirect(url_for('tickets.technician_dashboard'))
+    
+    area = Area.query.get_or_404(managed_area_id)
+    
+    if request.method == 'POST':
+        name = request.form.get('name')
+        description = request.form.get('description')
+        technical_profile = request.form.get('technical_profile')
+        
+        # Validate form data
+        if not name:
+            flash('Por favor complete el nombre de la categoría.', 'danger')
+            return render_template('jefe_area/add_category.html', area=area)
+        
+        # Check if category name already exists
+        if TicketCategory.query.filter_by(name=name).first():
+            flash('Ya existe una categoría con ese nombre.', 'danger')
+            return render_template('jefe_area/add_category.html', area=area)
+        
+        # Create new category
+        new_category = TicketCategory(
+            name=name,
+            description=description,
+            technical_profile=technical_profile,
+            area_id=area.id,
+            active=True
+        )
+        
+        db.session.add(new_category)
+        db.session.commit()
+        
+        flash('Categoría creada exitosamente.', 'success')
+        return redirect(url_for('jefe_area.area_categories'))
+    
+    return render_template('jefe_area/add_category.html', area=area)
+
+@jefe_area_bp.route('/assign_technician_category/<int:tech_id>', methods=['GET', 'POST'])
+@jefe_area_required
+def assign_technician_category(tech_id):
+    # Get managed area ID from session
+    managed_area_id = session.get('managed_area_id')
+    
+    if not managed_area_id:
+        flash('Error: No se ha encontrado el área gestionada.', 'danger')
+        return redirect(url_for('tickets.technician_dashboard'))
+    
+    area = Area.query.get_or_404(managed_area_id)
+    technician = Technician.query.get_or_404(tech_id)
+    
+    # Check if technician belongs to the managed area
+    if technician.area_id != managed_area_id:
+        flash('Este técnico no pertenece a tu área.', 'danger')
+        return redirect(url_for('jefe_area.area_technicians'))
+    
+    # Get all categories in the area
+    categories = area.categories
+    
+    # Get current technician-category assignments
+    current_assignments = TechnicianCategoryAssignment.query.filter_by(technician_id=tech_id).all()
+    current_category_ids = [assignment.category_id for assignment in current_assignments]
+    
+    if request.method == 'POST':
+        # Get selected category IDs
+        selected_category_ids = request.form.getlist('categories')
+        selected_category_ids = [int(id) for id in selected_category_ids]
+        
+        # Verify all selected categories belong to the area
+        area_category_ids = [cat.id for cat in categories]
+        if not all(cat_id in area_category_ids for cat_id in selected_category_ids):
+            flash('No se pueden asignar categorías de otras áreas.', 'danger')
+            return redirect(url_for('jefe_area.assign_technician_category', tech_id=tech_id))
+        
+        # Remove assignments for categories not selected
+        for assignment in current_assignments:
+            if assignment.category_id not in selected_category_ids:
+                db.session.delete(assignment)
+        
+        # Add assignments for newly selected categories
+        for cat_id in selected_category_ids:
+            if cat_id not in current_category_ids:
+                new_assignment = TechnicianCategoryAssignment(
+                    technician_id=tech_id,
+                    category_id=cat_id,
+                    assigned_at=datetime.utcnow()
+                )
+                db.session.add(new_assignment)
+        
+        db.session.commit()
+        flash('Asignaciones de categorías actualizadas exitosamente.', 'success')
+        return redirect(url_for('jefe_area.area_technicians'))
+    
+    return render_template('jefe_area/assign_technician_category.html',
+                          area=area,
+                          technician=technician,
+                          categories=categories,
+                          current_category_ids=current_category_ids)
+
+@jefe_area_bp.route('/add_technician', methods=['GET', 'POST'])
+@jefe_area_required
+def add_technician():
+    # Get managed area ID from session
+    managed_area_id = session.get('managed_area_id')
+    
+    if not managed_area_id:
+        flash('Error: No se ha encontrado el área gestionada.', 'danger')
+        return redirect(url_for('tickets.technician_dashboard'))
+    
+    area = Area.query.get_or_404(managed_area_id)
+    
+    if request.method == 'POST':
+        dni = request.form.get('dni')
+        name = request.form.get('name')
+        email = request.form.get('email')
+        
+        # Validate form data
+        if not all([dni, name, email]):
+            flash('Por favor complete todos los campos requeridos.', 'danger')
+            return render_template('jefe_area/add_technician.html', area=area)
+        
+        # Check if technician already exists
+        existing_tech = Technician.query.filter(
+            (Technician.email == email) | (Technician.dni == dni)
+        ).first()
+        
+        if existing_tech:
+            if existing_tech.email == email:
+                flash('Ya existe un técnico con ese correo electrónico.', 'danger')
+            else:
+                flash('Ya existe un técnico con ese DNI.', 'danger')
+            return render_template('jefe_area/add_technician.html', area=area)
+        
+        # Create new technician
+        new_technician = Technician(
+            dni=dni,
+            name=name,
+            email=email,
+            area_id=area.id  # Assign directly to the chief's area
+        )
+        
+        db.session.add(new_technician)
+        db.session.commit()
+        
+        # Send email invite to set up password
+        email_service = EmailService()
+        token = new_technician.generate_password_token()
+        email_result = email_service.send_password_setup_email(
+            new_technician.email,
+            new_technician.name,
+            token
+        )
+        
+        if email_result.get("success"):
+            flash(f'Técnico {name} creado exitosamente. Se ha enviado un correo para configurar la contraseña.', 'success')
+        else:
+            flash(f'Técnico {name} creado exitosamente, pero hubo un problema al enviar el correo de configuración.', 'warning')
+        
+        return redirect(url_for('jefe_area.area_technicians'))
+    
+    return render_template('jefe_area/add_technician.html', area=area)
